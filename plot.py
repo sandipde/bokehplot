@@ -9,7 +9,6 @@ from bokeh.models import ColumnDataSource, CustomJS, Rect
 from bokeh.models import HoverTool
 from copy import copy
 from math import exp
-import numpy as np
 
 def main(file,pcol,psize,image_prefix,title=''):
 
