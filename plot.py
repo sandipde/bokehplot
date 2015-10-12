@@ -70,8 +70,10 @@ def main(file,pcol,psize,image_prefix,title=''):
  cval=copy(column[kcol][:])
  mincolor=min(cval)
  maxcolor=max(cval)
- #print mincolor,maxcolor 
- for i in range(len(cval)): cval[i]=(cval[i]-mincolor)/(maxcolor-mincolor)
+ #print mincolor,maxcolor
+ difcolor=maxcolor-mincolor
+ if difcolor==0:difcolor=1 
+ for i in range(len(cval)): cval[i]=(cval[i]-mincolor)/difcolor
  #print min(cval),max(cval)
  radii=copy(column[scol][:])
  minr=min(radii)
