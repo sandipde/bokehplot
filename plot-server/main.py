@@ -12,68 +12,42 @@ from bokeh.models import (
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.models import ColumnDataSource, CustomJS, Rect,Spacer
 from bokeh.models import HoverTool,TapTool,FixedTicker,Circle
+from bokeh.models import BoxSelectTool, LassoSelectTool
 from bokeh.models.mappers import LinearColorMapper
-from bokeh.palettes import Spectral6
 from bokeh.plotting import figure
-from cosmo import cosmo_colors
+from bokeh.layouts import row, widgetbox
+from bokeh.models import Select
+from cosmo import create_plot
 #from data import process_data
 from os.path import dirname, join
 
 datafile=join(dirname(__file__), 'data', 'MAPbI.dat')
 colvar=np.loadtxt(datafile)
-colors=cosmo_colors(colvar[:,3])
-xval=np.zeros(len(colvar))
 xval=copy(colvar[:,0])
-yval=np.zeros(len(colvar))
 yval=copy(colvar[:,1])
-datasrc = ColumnDataSource(
-        data=dict(
-            x=xval,
-            y=yval,
-            colors=colors,
-        )
-    )
+cval=copy(colvar[:,3])
+layout = create_plot(xval,yval,cval)
 
-source = ColumnDataSource({'x': [], 'y': [], 'width': [], 'height': []})
+def update(attr, old, new):
+    layout.children[1] = create_figure()
 
-jscode="""
-        var data = source.get('data');
-        var start = range.get('start');
-        var end = range.get('end');
-        data['%s'] = [start + (end - start) / 2];
-        data['%s'] = [end - start];
-        source.trigger('change');
-     """
-initial_circle = Circle(x='x', y='y')
-selected_circle = Circle(fill_alpha=1, fill_color="firebrick", size=20)
-nonselected_circle = Circle(fill_alpha=0.4,fill_color='colors',line_color=None)
-title="Sketchmap"
-TOOLS="resize,crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
-# The main Plot of tab 1
-p1 = figure(title=title,tools=[TOOLS],height=800,width=800)
-p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.8, line_color=None,name="mycircle")
-p1.x_range.callback = CustomJS(
-       args=dict(source=source, range=p1.x_range), code=jscode % ('x', 'width'))
-p1.y_range.callback = CustomJS(
-       args=dict(source=source, range=p1.y_range), code=jscode % ('y', 'height'))
-#p1.title_text_color = "firebrick"
-#p1.title_text_font = "times"
-#p1.title_text_font_style = "italic"
-renderer = p1.select(name="mycircle")
-renderer.selection_glyph = selected_circle
-renderer.nonselection_glyph = nonselected_circle
-p1.xgrid.grid_line_color = None
-p1.ygrid.grid_line_color = None
-p1.xaxis[0].ticker=FixedTicker(ticks=[])
-p1.yaxis[0].ticker=FixedTicker(ticks=[])
-p1.outline_line_width = 0
-p1.outline_line_color = "white"
-p1.xaxis.axis_line_width = 0
-p1.xaxis.axis_line_color = "white"
-p1.yaxis.axis_line_width = 0
-p1.yaxis.axis_line_color = "white"
 
-layout = column(row(p1), row(Spacer(width=200, height=200)))
+x = Select(title='X-Axis', value='mpg', options=columns)
+x.on_change('value', update)
+
+y = Select(title='Y-Axis', value='hp', options=columns)
+y.on_change('value', update)
+
+size = Select(title='Size', value='None', options=['None'] + quantileable)
+size.on_change('value', update)
+
+color = Select(title='Color', value='None', options=['None'] + quantileable)
+color.on_change('value', update)
+
+controls = widgetbox([x, y, color, size], width=200)
+layout = row(controls, create_figure())
+
+
 
 curdoc().add_root(layout)
 curdoc().template_variables["js_files"] = ["static/jmol/JSmol.min.js"]

@@ -1,4 +1,101 @@
 import numpy as np
+from bokeh.core.properties import field
+from bokeh.io import curdoc
+from bokeh.layouts import layout,column,row
+from bokeh.models import (
+    ColumnDataSource, HoverTool, SingleIntervalTicker, Slider, Button, Label,
+    CategoricalColorMapper,
+)
+from bokeh.models.widgets import Panel, Tabs
+from bokeh.models import ColumnDataSource, CustomJS, Rect,Spacer
+from bokeh.models import HoverTool,TapTool,FixedTicker,Circle
+from bokeh.models import BoxSelectTool, LassoSelectTool
+from bokeh.models.mappers import LinearColorMapper
+from bokeh.plotting import figure
+
+def create_plot(xval,yval,cval):
+   colors=cosmo_colors(cval)
+   datasrc = ColumnDataSource(
+           data=dict(
+               x=xval,
+               y=yval,
+               colors=colors,
+           )
+       )
+   
+   source = ColumnDataSource({'xs': [], 'ys': [], 'wd': [], 'ht': []})
+   
+   jscode="""
+           var data = source.get('data');
+           var start = range.get('start');
+           var end = range.get('end');
+           data['%s'] = [start + (end - start) / 2];
+           data['%s'] = [end - start];
+           source.trigger('change');
+        """
+   initial_circle = Circle(x='x', y='y')
+   selected_circle = Circle(fill_alpha=1, fill_color="firebrick", size=20)
+   nonselected_circle = Circle(fill_alpha=0.4,fill_color='colors',line_color=None)
+   
+   title="Sketchmap"
+   TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
+   #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
+   # The main Plot of tab 1
+   p1 = figure(title=title,tools=TOOLS,height=800,width=800,toolbar_location="above")
+   p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.8, line_color=None,name="mycircle")
+   p1.x_range.callback = CustomJS(
+          args=dict(source=source, range=p1.x_range), code=jscode % ('xs', 'wd'))
+   p1.y_range.callback = CustomJS(
+          args=dict(source=source, range=p1.y_range), code=jscode % ('ys', 'ht'))
+   
+   renderer = p1.select(name="mycircle")
+   renderer.selection_glyph = selected_circle
+   renderer.nonselection_glyph = nonselected_circle
+   
+   p1.xgrid.grid_line_color = None
+   p1.ygrid.grid_line_color = None
+   p1.xaxis[0].ticker=FixedTicker(ticks=[])
+   p1.yaxis[0].ticker=FixedTicker(ticks=[])
+   p1.outline_line_width = 0
+   p1.outline_line_color = "white"
+   p1.xaxis.axis_line_width = 0
+   p1.xaxis.axis_line_color = "white"
+   p1.yaxis.axis_line_width = 0
+   p1.yaxis.axis_line_color = "white"
+   
+   # The overview plot
+   p2 = figure(tools='',height=300,width=300)
+   p2.xgrid.grid_line_color = None
+   p2.ygrid.grid_line_color = None
+   p2.xaxis[0].ticker=FixedTicker(ticks=[])
+   p2.yaxis[0].ticker=FixedTicker(ticks=[])
+   p2.circle('x','y',source=datasrc,size=5,fill_color=colors, fill_alpha=0.8, line_color=None,name='mycircle')
+   renderer = p2.select(name="mycircle")
+   renderer.selection_glyph = selected_circle
+   renderer.nonselection_glyph = nonselected_circle
+   p2.outline_line_width = 0
+   p2.outline_line_alpha = 0.3
+   p2.outline_line_color = "white"
+   p2.xaxis.axis_line_width = 0
+   p2.xaxis.axis_line_color = "white"
+   p2.yaxis.axis_line_width = 0
+   p2.yaxis.axis_line_color = "white"
+   rect = Rect(x='xs', y='ys', width='wd', height='ht', fill_alpha=0.1,
+              line_color='black', fill_color='black')
+   p2.add_glyph(source, rect)
+   
+   callback=CustomJS(code="""
+       var inds = cb_obj.get('selected')['1d'].indices[0];
+       var str = "" + inds;
+       var pad = "0000";
+       var indx = pad.substring(0, pad.length - str.length) + str;
+       var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
+       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
+       location.href=file;
+       """)
+   taptool = p1.select(type=TapTool)
+   taptool.callback = callback
+   return row(p1,p2)
 
 def cosmo_colors(cval):
    color_palatte=energy_color_palatte()
