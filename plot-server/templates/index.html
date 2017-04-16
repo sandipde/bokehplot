@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Bokeh Gapminder Example</title>
+    {{ bokeh_css }}
+    {{ bokeh_js }}
+    {%- for file in js_files %}
+    <script type="text/javascript" src="{{ file }}"></script>
+    {%- endfor %}
+    {% block javascript %}
+    <script type="text/javascript">
+        {% include "myjsmol.js" %}
+    </script>
+    <!-- The contents of myscript.js will be loaded inside the script tag -->
+    {% endblock %}
+<!--    <style>
+      {% include 'styles.css' %}
+    </style>
+-->
+  </head>
+  <body>
+    <div class="content">
+      <h1>Sketchmap</h1>
+      {{ plot_div|indent(8) }}
+    </div>
+    {{ plot_script|indent(8) }}
+    <div id="appdiv" style="position:absolute; top:350px; left:800px;"></div>
+  </body>
+</html>
