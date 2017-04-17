@@ -5,6 +5,7 @@ from copy import copy
 from bokeh.core.properties import field
 from bokeh.io import curdoc
 from bokeh.layouts import layout,column,row
+from bokeh.models.layouts import HBox
 from bokeh.models import (
     ColumnDataSource, HoverTool, SingleIntervalTicker, Slider, Button, Label,
     CategoricalColorMapper,
@@ -23,29 +24,30 @@ from os.path import dirname, join
 
 datafile=join(dirname(__file__), 'data', 'MAPbI.dat')
 colvar=np.loadtxt(datafile)
-xval=copy(colvar[:,0])
-yval=copy(colvar[:,1])
-cval=copy(colvar[:,3])
-layout = create_plot(xval,yval,cval)
+
 
 def update(attr, old, new):
-    layout.children[1] = create_figure()
+    p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value])
+    plots=column(row(p1,p2),row(slider,Spacer(width=200, height=30)))
+    layout.children[1] = plots
 
+columns=["cv1","cv2","index","energy"]
+col_dict={"cv1":0,"cv2": 1,"index": 2,"energy": 3}
 
-x = Select(title='X-Axis', value='mpg', options=columns)
-x.on_change('value', update)
+xcol = Select(title='X-Axis', value='cv1', options=columns)
+xcol.on_change('value', update)
 
-y = Select(title='Y-Axis', value='hp', options=columns)
-y.on_change('value', update)
+ycol = Select(title='Y-Axis', value='cv2', options=columns)
+ycol.on_change('value', update)
 
-size = Select(title='Size', value='None', options=['None'] + quantileable)
-size.on_change('value', update)
+ccol = Select(title='Color', value='energy', options=columns)
+ccol.on_change('value', update)
 
-color = Select(title='Color', value='None', options=['None'] + quantileable)
-color.on_change('value', update)
+controls = row([xcol, ycol, ccol])
 
-controls = widgetbox([x, y, color, size], width=200)
-layout = row(controls, create_figure())
+p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value])
+plots=column(row(p1,p2),row(slider,Spacer(width=200, height=30)))
+layout = column(controls,plots)
 
 
 

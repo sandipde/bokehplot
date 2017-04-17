@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy
 from bokeh.core.properties import field
 from bokeh.io import curdoc
 from bokeh.layouts import layout,column,row
@@ -13,7 +14,10 @@ from bokeh.models import BoxSelectTool, LassoSelectTool
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.plotting import figure
 
-def create_plot(xval,yval,cval):
+def create_plot(data,xcol,ycol,ccol):
+   xval=copy(data[:,xcol])
+   yval=copy(data[:,ycol])
+   cval=copy(data[:,ccol])
    colors=cosmo_colors(cval)
    datasrc = ColumnDataSource(
            data=dict(
@@ -37,7 +41,7 @@ def create_plot(xval,yval,cval):
    selected_circle = Circle(fill_alpha=1, fill_color="firebrick", size=20)
    nonselected_circle = Circle(fill_alpha=0.4,fill_color='colors',line_color=None)
    
-   title="Sketchmap"
+   title=" "
    TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
    #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
    # The main Plot of tab 1
@@ -95,7 +99,34 @@ def create_plot(xval,yval,cval):
        """)
    taptool = p1.select(type=TapTool)
    taptool.callback = callback
-   return row(p1,p2)
+   
+
+   slider_callback=CustomJS(code="""
+       var inds = cb_obj.value;
+       var str = "" + inds;
+       var pad = "0000";
+       var indx = pad.substring(0, pad.length - str.length) + str;
+       var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
+       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
+       location.href=file;
+       """)
+   s2 = ColumnDataSource(data=dict(xs=[xval[0]], ys=[yval[0]]))
+   def slider_callback2(src=datasrc,source=s2, window=None):
+    data = source.data
+    xval=src.data['x']
+    yval=src.data['y']
+    ind = cb_obj.value                         # NOQA
+    data['xs']=[xval[ind]]
+    data['ys']=[yval[ind]]
+    source.trigger('change');
+
+
+   slider = Slider(start=0, end=2600, value=0, step=1, title="selected", callback=CustomJS.from_py_func(slider_callback2))
+   slider.js_on_change('value', slider_callback)
+# draw selected point on slider change
+   p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="firebrick", size=10,name="mycircle")
+   return p1,p2,slider
+#   return column(row(p1,p2),row(slider,Spacer(width=200, height=30)))
 
 def cosmo_colors(cval):
    color_palatte=energy_color_palatte()
