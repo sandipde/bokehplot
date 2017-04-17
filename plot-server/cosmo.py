@@ -16,6 +16,7 @@ from bokeh.plotting import figure
 
 def create_plot(data,xcol,ycol,ccol):
    xval=copy(data[:,xcol])
+   n=len(xval)
    yval=copy(data[:,ycol])
    cval=copy(data[:,ccol])
    colors=cosmo_colors(cval)
@@ -45,7 +46,7 @@ def create_plot(data,xcol,ycol,ccol):
    TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
    #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
    # The main Plot of tab 1
-   p1 = figure(title=title,tools=TOOLS,height=800,width=800,toolbar_location="above")
+   p1 = figure(title=title,tools=TOOLS,height=600,width=600,toolbar_location="below")
    p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.8, line_color=None,name="mycircle")
    p1.x_range.callback = CustomJS(
           args=dict(source=source, range=p1.x_range), code=jscode % ('xs', 'wd'))
@@ -68,7 +69,7 @@ def create_plot(data,xcol,ycol,ccol):
    p1.yaxis.axis_line_color = "white"
    
    # The overview plot
-   p2 = figure(tools='',height=300,width=300)
+   p2 = figure(tools='',height=250,width=250)
    p2.xgrid.grid_line_color = None
    p2.ygrid.grid_line_color = None
    p2.xaxis[0].ticker=FixedTicker(ticks=[])
@@ -101,7 +102,7 @@ def create_plot(data,xcol,ycol,ccol):
    taptool.callback = callback
    
 
-   slider_callback=CustomJS(code="""
+   slider_callback=CustomJS( code="""
        var inds = cb_obj.value;
        var str = "" + inds;
        var pad = "0000";
@@ -110,23 +111,24 @@ def create_plot(data,xcol,ycol,ccol):
        var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
        """)
-   s2 = ColumnDataSource(data=dict(xs=[xval[0]], ys=[yval[0]]))
-   def slider_callback2(src=datasrc,source=s2, window=None):
-    data = source.data
-    xval=src.data['x']
-    yval=src.data['y']
-    ind = cb_obj.value                         # NOQA
-    data['xs']=[xval[ind]]
-    data['ys']=[yval[ind]]
-    source.trigger('change');
+#   def slider_callback2(src=datasrc,source=s2, window=None):
+#    data = source.data
+#    xval=src.data['x']
+#    yval=src.data['y']
+#    ind = cb_obj.value                         # NOQA
+#    data['xs']=[xval[ind]]
+#    data['ys']=[yval[ind]]
+#    source.trigger('change');
 
 
-   slider = Slider(start=0, end=2600, value=0, step=1, title="selected", callback=CustomJS.from_py_func(slider_callback2))
+  # slider = Slider(start=0, end=2600, value=0, step=1, title="selected", callback=CustomJS.from_py_func(slider_callback2))
+   slider = Slider(start=0, end=n-1, value=0, step=1, title="Frame:", width=800)
+#   slider.js_on_change('value', CustomJS.from_py_func(slider_callback2))
    slider.js_on_change('value', slider_callback)
 # draw selected point on slider change
-   p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="firebrick", size=10,name="mycircle")
+#   p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="firebrick", size=10,name="mycircle")
    return p1,p2,slider
-#   return column(row(p1,p2),row(slider,Spacer(width=200, height=30)))
+#   return column(row(p1,p2),row(slider,Spacer(width=20, height=30)))
 
 def cosmo_colors(cval):
    color_palatte=energy_color_palatte()
