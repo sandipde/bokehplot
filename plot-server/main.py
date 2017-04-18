@@ -54,7 +54,7 @@ def slider_update(attrname, old, new):
 def animate():
     if button.label == '► Play':
         button.label = '❚❚ Pause'
-        curdoc().add_periodic_callback(animate_update, 200)
+        curdoc().add_periodic_callback(animate_update, 500)
     else:
         button.label = '► Play'
         curdoc().remove_periodic_callback(animate_update)
@@ -66,12 +66,11 @@ def animate():
 def update(attr, old, new):
     global indx,s2
     col_dict={"cv1":0,"cv2": 1,"index": 2,"energy": 3}
-    p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value])
+    p1,p2,slider = create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value],plt_name.value)
     xval,yval=selected_point(colvar,col_dict[xcol.value],col_dict[ycol.value],indx)
     s = ColumnDataSource(data=dict(xs=[xval], ys=[yval]))
     s2.data=s.data 
-    p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="blue", size=10,name="mycircle")
-    s=widgetbox(slider,width=1000)
+    p1.circle('xs', 'ys', source=s2, fill_alpha=0.9, fill_color="blue",line_color='black',line_width=1, size=8,name="mycircle")
     button = Button(label='► Play', width=60)
     button.on_click(animate)
     lay.children[1] = row(p1,p2)
@@ -94,18 +93,26 @@ ycol.on_change('value', update)
 ccol = Select(title='Color', value='energy', options=columns)
 ccol.on_change('value', update)
 
-controls = row([xcol, ycol, ccol])
+plt_name = Select(title='Palatte', value='Magma256', options=["Magma256","Plasma256","Spectral6","Inferno256","Viridis256","Greys256","cosmo"])
+plt_name.on_change('value', update)
+xm=widgetbox(xcol,width=100)
+ym=widgetbox(ycol,width=100)
+cm=widgetbox(ccol,width=100)
+pm=widgetbox(plt_name,width=100)
+#controls = row(xcol, ycol, ccol, plt_name),width=600)
+controls = row(xm, ym, cm, pm)
 button = Button(label='► Play', width=60)
 button.on_click(animate)
 indx=0
 xval,yval=selected_point(colvar,col_dict[xcol.value],col_dict[ycol.value],indx)
 s2 = ColumnDataSource(data=dict(xs=[xval], ys=[yval]))
 
-p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value])
-s=widgetbox(slider,width=1000)
-p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="blue", size=10,name="mycircle")
+p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value],plt_name.value)
+p1.circle('xs', 'ys', source=s2, fill_alpha=0.9, fill_color="blue",line_color='black',line_width=1, size=8,name="mycircle")
+#p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="black", size=10,name="mycircle")
 slider.on_change('value', slider_update)
-plots=column(row(p1,p2),row(s,Spacer(width=20, height=30))) #,button)
+#plots=column(row(p1,p2),row(s,Spacer(width=20, height=30))) #,button)
+slide=widgetbox(slider,width=600)
 
 lay = layout([
     [controls],

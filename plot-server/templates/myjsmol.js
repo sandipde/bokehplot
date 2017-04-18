@@ -6,8 +6,8 @@ Jmol._getElement(applet, "appletdiv").style.border="0px solid blue"
 }
 
 var Info = {
-width: 400,
-height: 400,
+width: 250,
+height: 250,
 debug: false,
 color: "0xFFFFFF",
 use: "HTML5",   // JAVA HTML5 WEBGL are all options

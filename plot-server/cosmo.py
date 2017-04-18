@@ -13,21 +13,27 @@ from bokeh.models import HoverTool,TapTool,FixedTicker,Circle
 from bokeh.models import BoxSelectTool, LassoSelectTool
 from bokeh.models.mappers import LinearColorMapper
 from bokeh.plotting import figure
+from bokeh.palettes import Spectral6,Inferno256,Viridis256,Greys256,Magma256,Plasma256
+from bokeh.models import LogColorMapper, LogTicker, ColorBar,BasicTicker,LinearColorMapper
 
-def create_plot(data,xcol,ycol,ccol):
+def create_plot(data,xcol,ycol,ccol,plt_name):
    xval=copy(data[:,xcol])
    n=len(xval)
    yval=copy(data[:,ycol])
    cval=copy(data[:,ccol])
-   colors=cosmo_colors(cval)
+   colors,colorbar=set_colors(cval,plt_name)
    datasrc = ColumnDataSource(
            data=dict(
                x=xval,
                y=yval,
-               colors=colors,
+               z=cval,
+               colors=colors
            )
        )
-   
+#   color_mapper = LinearColorMapper(palette="Viridis256", low=min(cval), high=max(cval))
+#   colorbar = ColorBar(color_mapper=color_mapper, ticker=BasicTicker(),label_standoff=12, border_line_color=None, location=(0,0)) 
+
+   s2 = ColumnDataSource(data=dict(xs=[], ys=[]))   
    source = ColumnDataSource({'xs': [], 'ys': [], 'wd': [], 'ht': []})
    
    jscode="""
@@ -46,8 +52,10 @@ def create_plot(data,xcol,ycol,ccol):
    TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
    #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
    # The main Plot of tab 1
-   p1 = figure(title=title,tools=TOOLS,height=600,width=600,toolbar_location="below")
-   p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.8, line_color=None,name="mycircle")
+   p1 = figure(title=title,tools=TOOLS,height=500,width=500,toolbar_location="above")
+   p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.6, line_color=None,name="mycircle")
+   p1.add_layout(colorbar, 'left')
+
    p1.x_range.callback = CustomJS(
           args=dict(source=source, range=p1.x_range), code=jscode % ('xs', 'wd'))
    p1.y_range.callback = CustomJS(
@@ -98,19 +106,6 @@ def create_plot(data,xcol,ycol,ccol):
        var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
        """)
-   taptool = p1.select(type=TapTool)
-   taptool.callback = callback
-   
-
-   slider_callback=CustomJS( code="""
-       var inds = cb_obj.value;
-       var str = "" + inds;
-       var pad = "0000";
-       var indx = pad.substring(0, pad.length - str.length) + str;
-       var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
-       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
-       location.href=file;
-       """)
 #   def slider_callback2(src=datasrc,source=s2, window=None):
 #    data = source.data
 #    xval=src.data['x']
@@ -119,6 +114,20 @@ def create_plot(data,xcol,ycol,ccol):
 #    data['xs']=[xval[ind]]
 #    data['ys']=[yval[ind]]
 #    source.trigger('change');
+
+   taptool = p1.select(type=TapTool)
+   taptool.callback = callback
+#   taptool.js_on_change('value', callback=CustomJS.from_py_func(slider_callback2))  
+
+   slider_callback=CustomJS( code="""
+       var inds = cb_obj.value;
+       var str = "" + inds;
+       var pad = "0000";
+       var indx = pad.substring(0, pad.length - str.length) + str;
+       var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
+       var file= "javascript:Jmol.script(jmolApplet1," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
+       location.href=file;
+       """)
 
 
   # slider = Slider(start=0, end=2600, value=0, step=1, title="selected", callback=CustomJS.from_py_func(slider_callback2))
@@ -131,12 +140,31 @@ def create_plot(data,xcol,ycol,ccol):
 #   return column(row(p1,p2),row(slider,Spacer(width=20, height=30)))
 
 def cosmo_colors(cval):
-   color_palatte=energy_color_palatte()
-   color_palatte.reverse()
+   color_palatte=cosmo_palatte()
    colormap=RGBAColorMapper(min(cval),max(cval),color_palatte)
    rgb=colormap.color(cval)
    colors = ["#%02x%02x%02x" % (c[0],c[1],c[2]) for c in rgb]
    return colors
+
+def set_colors(cval,plt_name='cosmo'):
+   if (plt_name == 'cosmo'):
+         plt=cosmo_palatte()
+    #     colormap1=RGBAColorMapper(min(cval),max(cval),plt1)
+    #     rgb1=colormap1.color(cval)
+    #     plt = ["#%02x%02x%02x" % (c[0],c[1],c[2]) for c in rgb1]
+      
+   if (plt_name == 'Spectral6'): plt=Spectral6
+   if (plt_name == 'Inferno256'): plt=Inferno256
+   if (plt_name == 'Viridis256'): plt=Viridis256
+   if (plt_name == 'Greys256'): plt=Greys256
+   if (plt_name == 'Magma256'): plt=Magma256
+   if (plt_name == 'Plasma256'): plt=Plasma256
+   colormap=RGBAColorMapper(min(cval),max(cval),plt)
+   rgb=colormap.color(cval)
+   colors = ["#%02x%02x%02x" % (c[0],c[1],c[2]) for c in rgb]
+   color_mapper=LinearColorMapper(palette=plt, low=min(cval), high=max(cval))
+   colorbar = ColorBar(color_mapper=color_mapper, ticker=BasicTicker(),label_standoff=12, border_line_color=None, location=(0,0)) 
+   return colors,colorbar
 
 def hex_to_rgb(value):
     """Given a color in hex format, return it in RGB."""
@@ -175,7 +203,7 @@ class RGBAColorMapper(object):
           c.append([red[i],green[i],blue[i]])
         return c
 
-def energy_color_palatte():
+def cosmo_palatte(self):
  
  color_palatte=["#ddf0fe", "#dcf0fe", "#dcf0fe", "#dbf0fe", "#dbf0fe", "#dbeffe", \
 "#daeffe", "#daeffe", "#d9effe", "#d9effe", "#d8eefe", "#d8eefe", \
@@ -344,4 +372,5 @@ def energy_color_palatte():
 "#e46fa", "#e670a", "#e7719", "#e9728", "#eb738", "#ed747", "#ee756", \
 "#f0776", "#f2785", "#f4794", "#f67a3", "#f77b3", "#f97c2", "#fb7d1", \
 "#fd7e1", "#ff800"]
+ color_palatte.reverse()
  return color_palatte
