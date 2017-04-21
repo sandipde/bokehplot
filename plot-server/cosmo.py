@@ -52,7 +52,8 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
    TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
    #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
    # The main Plot of tab 1
-   p1 = figure(title=title,tools=TOOLS,height=500,width=500,toolbar_location="above")
+   p1 = figure(title=title,tools=TOOLS,active_scroll="wheel_zoom",height=500,width=500,toolbar_location="above")
+#   p1.toolbar.active_scroll=None
    p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.6, line_color=None,name="mycircle")
    p1.add_layout(colorbar, 'left')
 
@@ -103,7 +104,7 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
        var pad = "0000";
        var indx = pad.substring(0, pad.length - str.length) + str;
        var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
-       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
+       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
        """)
 #   def slider_callback2(src=datasrc,source=s2, window=None):
@@ -125,7 +126,7 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
        var pad = "0000";
        var indx = pad.substring(0, pad.length - str.length) + str;
        var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
-       var file= "javascript:Jmol.script(jmolApplet1," + "'load  plot-server/static/set."+ indx+ ".xyz ;" + settings + "')" ;
+       var file= "javascript:Jmol.script(jmolApplet1," + "'load  plot-server/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
        """)
 

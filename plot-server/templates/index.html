@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Bokeh Gapminder Example</title>
+    <title>Sketchmap</title>
     {{ bokeh_css }}
     {{ bokeh_js }}
     {%- for file in js_files %}
@@ -19,7 +19,7 @@
     <!-- The contents of myscript.js will be loaded inside the script tag -->
     {% endblock %}
 <!--    <style>
-      {% include 'styles.css' %}
+      {% include 'theme.css' %}
     </style>
 -->
   </head>
@@ -29,7 +29,9 @@
       {{ plot_div|indent(8) }}
     </div>
     {{ plot_script|indent(8) }}
-    <div id="appdiv" style="position:absolute; top:400px; left:500px;"></div>
+    <div id="appdiv" style="position:absolute; top:400px; left:500px;">
+    Mouse Selection 
+    </div>
     <div id="jsmoldiv" style="position:absolute; top:400px; left:800px;"></div>
   </body>
 </html>

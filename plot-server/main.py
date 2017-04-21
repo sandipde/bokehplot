@@ -120,5 +120,5 @@ lay = layout([
     [slider, button],
 ], sizing_mode='fixed')
 curdoc().add_root(lay)
-curdoc().template_variables["js_files"] = ["static/jmol/JSmol.min.js"]
+curdoc().template_variables["js_files"] = ["plot-server/static/jmol/JSmol.min.js"]
 curdoc().title = "Sketchmap"
