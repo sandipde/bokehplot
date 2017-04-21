@@ -78,7 +78,7 @@ def update(attr, old, new):
 
 
 datafile=join(dirname(__file__), 'data', 'MAPbI.dat')
-colvar=np.loadtxt(datafile)
+colvar=np.loadtxt(datafile) #dtype='float32')
 n=len(colvar)
 
 columns=["cv1","cv2","index","energy"]
@@ -93,7 +93,7 @@ ycol.on_change('value', update)
 ccol = Select(title='Color', value='energy', options=columns)
 ccol.on_change('value', update)
 
-plt_name = Select(title='Palatte', value='Magma256', options=["Magma256","Plasma256","Spectral6","Inferno256","Viridis256","Greys256","cosmo"])
+plt_name = Select(title='Palette', value='Magma256', options=["Magma256","Plasma256","Spectral6","Inferno256","Viridis256","Greys256"])
 plt_name.on_change('value', update)
 xm=widgetbox(xcol,width=100)
 ym=widgetbox(ycol,width=100)

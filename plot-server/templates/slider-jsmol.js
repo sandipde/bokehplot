@@ -15,7 +15,7 @@ j2sPath: "static/jmol/j2s", // this needs to point to where the j2s directory is
 jarPath: "static/jmol/java",// this needs to point to where the java directory is.
 jarFile: "JmolAppletSigned.jar",
 isSigned: true,
-script: "set antialiasDisplay;load plot-server/static/set.0001.xyz; connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 6 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF " ,
+script: "set antialiasDisplay;load plot-server/static/set.0000.xyz; connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 6 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF " ,
 serverURL: "./jmol/php/jsmol.php",
 readyFunction: jmol_isReady,
 disableJ2SLoadMonitor: true,
