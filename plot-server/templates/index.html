@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Sketchmap</title>
+ <!--   <title>Sketchmap</title> -->
     {{ bokeh_css }}
     {{ bokeh_js }}
     {%- for file in js_files %}
@@ -15,23 +15,132 @@
     <script type="text/javascript">
         {% include "slider-jsmol.js" %}
     </script>
-    <!-- The contents of myscript.js will be loaded inside the script tag -->
-    <!-- The contents of myscript.js will be loaded inside the script tag -->
+    <script type="text/javascript">
+        {% include "intro.js" %}
+    </script>
     {% endblock %}
-<!--    <style>
-      {% include 'theme.css' %}
     </style>
--->
-  </head>
-  <body>
-    <div class="content">
-      <h1>Sketchmap</h1>
-      {{ plot_div|indent(8) }}
+   {%- for file in css_files %}
+      <link rel="stylesheet" href="{{file}}">
+   {%- endfor %}
+  </style>
+  <style type="text/css">
+     .button {
+       border-radius: 30px;
+       background-color: #4286f4;
+       border: none;
+       color: #FFFFFF;
+       text-align: center;
+       font-size: 15px;
+       padding: 10px;
+       width: 120px;
+       transition: all 0.5s;
+       cursor: pointer;
+       margin: 5px;
+     }
+     
+     .button span {
+       cursor: pointer;
+       display: inline-block;
+       position: relative;
+       transition: 0.5s;
+     }
+     
+     .button span:after {
+       content: '\00bb';
+       position: absolute;
+       opacity: 0;
+       top: 0;
+       right: -20px;
+       transition: 0.5s;
+     }
+     
+     .button:hover span {
+       padding-right: 25px;
+     }
+     
+     .button:hover span:after {
+       opacity: 1;
+       right: 0;
+     }
+    .gwd-div-1tar {
+      position: absolute;
+      left: 0px;
+      width: 1067px;
+      height: 492px;
+      transform-origin: 533.5px 246px 0px;
+      top: 25px;
+    }
+    .gwd-img-djxg {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 1067px;
+    }
+    .gwd-div-controls {
+      position: absolute;
+      width: 10.865px;
+      height: 2.809px;
+      left: 481.3463px;
+      top: 70.5618px;
+    }
+    .gwd-div-p2 {
+      position: absolute;
+      width: 250.865px;
+      height: 250.809px;
+      left: 650.3463px;
+      top: 120.5618px;
+    }
+    .gwd-div-w8b7 {
+      position: absolute;
+      width: 576.405px;
+      height: 62.9213px;
+      left: 20.2227px;
+      top: 471.91px;
+    }
+    .gwd-div-1swj {
+      position: absolute;
+      width: 147.191px;
+      height: 140.449px;
+      left: 492.133px;
+      top: 294.382px;
+    }
+  </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        {% include "start_intro.js" %}
+    </script>
+
+  <header class="w3-container w3-center  w3-blue-grey"><h1>Interactive Sketchmap Visualizer</h1> </header>
+  <div class="w3-container w3-row w3-center">
+    <div class="w3-container w3-twothird ">
+    <div id="step1" class="span6" style="width:950px" >
+            {{ plot_div|indent(8) }}
+            {{ plot_script|indent(8) }}
     </div>
-    {{ plot_script|indent(8) }}
-    <div id="appdiv" style="position:absolute; top:400px; left:500px;">
-    Mouse Selection 
     </div>
-    <div id="jsmoldiv" style="position:absolute; top:400px; left:800px;"></div>
-  </body>
+    <div class="w3-container w3-third w3-center" style="position:relative; left:100px">
+            <div class="w3-cell-col">
+              <div class="w3-card-4 w3-center" style="width:300px;">
+                <div id="step2" class="span6" style="width:300px" >
+                  <div id="p1" class="w3-tag w3-red ">Mouse selected frame: 0000</div>
+                  <div class="w3-center" style="width:300px;" id="appdiv">  </div>
+                </div>
+                <div id="step3" class="span6" style="width:300px" >
+                  <div class="w3-center" style="width:300px;" id="appdiv2" ></div>
+                  <div id="p2" class="w3-tag  w3-blue ">Slider selected frame: 0000 </div>
+                </div>
+               </div>
+            </div>
+    </div>
+  </div>
+   <div  style="position:absolute; top:450px ;right: 400px ;width: 200px" >
+        <button class="button" href="javascript:void(0);" onclick="startIntro();"><span>Tour !</span></button> 
+         <button class="button" href="javascript:void(0);" onclick="javascript:introJs().addHints();"><span>Hints ! </span></button>
+      </div>
+  <div class="gwd-div-controls"> <h1 data-hint="Try coloring the map with different properties. Sketchmp is built purely with structural input parameters. Coloring with different property showcase the structure-property correlation" data-hintPosition="top-middle" data-position="bottom-right-aligned"></h1></div>
+  <div class="gwd-div-p2"> <h1 data-hint="An overview of the main plot. Try zooming in on the main map ! " data-hintPosition="top-right" data-position="bottom-right-aligned"></h1></div>
+</body>
 </html>

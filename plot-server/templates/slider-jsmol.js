@@ -6,8 +6,8 @@ Jmol._getElement(applet, "appletdiv").style.border="0px solid blue"
 }
 
 var Info = {
-width: 250,
-height: 250,
+width: 300,
+height: 300,
 debug: false,
 color: "0xFFFFFF",
 use: "HTML5",   // JAVA HTML5 WEBGL are all options
@@ -24,6 +24,6 @@ allowJavaScript: true
 }
 
 $(document).ready(function() {
-$("#jsmoldiv").html(Jmol.getAppletHtml("jmolApplet1", Info))
+$("#appdiv2").html(Jmol.getAppletHtml("jmolApplet1", Info))
 })
 var lastPrompt=0;

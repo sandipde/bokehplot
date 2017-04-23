@@ -7,6 +7,7 @@ from bokeh.models import (
     ColumnDataSource, HoverTool, SingleIntervalTicker, Slider, Button, Label,
     CategoricalColorMapper,
 )
+from bokeh.models.widgets import Paragraph
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.models import ColumnDataSource, CustomJS, Rect,Spacer
 from bokeh.models import HoverTool,TapTool,FixedTicker,Circle
@@ -16,12 +17,14 @@ from bokeh.plotting import figure
 from bokeh.palettes import Spectral6,Inferno256,Viridis256,Greys256,Magma256,Plasma256
 from bokeh.models import LogColorMapper, LogTicker, ColorBar,BasicTicker,LinearColorMapper
 
-def create_plot(data,xcol,ycol,ccol,plt_name):
+def create_plot(data,xcol,ycol,ccol,plt_name,appname):
    xval=copy(data[:,xcol])
    n=len(xval)
    yval=copy(data[:,ycol])
    cval=copy(data[:,ccol])
    colors,colorbar=set_colors(cval,plt_name)
+   colorbar.background_fill_alpha = 0
+   colorbar.border_line_alpha = 0
    datasrc = ColumnDataSource(
            data=dict(
                x=xval,
@@ -45,14 +48,18 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
            source.trigger('change');
         """
    initial_circle = Circle(x='x', y='y')
-   selected_circle = Circle(fill_alpha=1, fill_color="firebrick", size=20)
+   selected_circle = Circle(fill_alpha=1, fill_color="firebrick", size=40)
    nonselected_circle = Circle(fill_alpha=0.4,fill_color='colors',line_color=None)
    
    title=" "
+   hover=HoverTool(tooltips = [
+    ("index", "$index"),
+    ("value:", "@z"),
+   ])   
    TOOLS="crosshair,pan,wheel_zoom,box_zoom,reset,box_select,lasso_select,tap,save"
    #TOOLS="pan,wheel_zoom,box_select,lasso_select,reset"
    # The main Plot of tab 1
-   p1 = figure(title=title,tools=TOOLS,active_scroll="wheel_zoom",height=500,width=500,toolbar_location="above")
+   p1 = figure(webgl=True,title=title,tools=[TOOLS,hover],active_scroll="wheel_zoom",height=500,width=650,toolbar_location="above")
 #   p1.toolbar.active_scroll=None
    p1.circle('x','y',source=datasrc,size=5,fill_color='colors', fill_alpha=0.6, line_color=None,name="mycircle")
    p1.add_layout(colorbar, 'left')
@@ -63,19 +70,23 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
           args=dict(source=source, range=p1.y_range), code=jscode % ('ys', 'ht'))
    
    renderer = p1.select(name="mycircle")
+   #print "renderer",renderer
    renderer.selection_glyph = selected_circle
+#   renderer.hover_glyph = selected_circle
    renderer.nonselection_glyph = nonselected_circle
-   
    p1.xgrid.grid_line_color = None
    p1.ygrid.grid_line_color = None
    p1.xaxis[0].ticker=FixedTicker(ticks=[])
    p1.yaxis[0].ticker=FixedTicker(ticks=[])
    p1.outline_line_width = 0
-   p1.outline_line_color = "white"
+   p1.outline_line_alpha = 0
+   p1.background_fill_alpha = 0
+   p1.border_fill_alpha = 0
    p1.xaxis.axis_line_width = 0
    p1.xaxis.axis_line_color = "white"
    p1.yaxis.axis_line_width = 0
    p1.yaxis.axis_line_color = "white"
+   p1.yaxis.axis_line_alpha = 0
    
    # The overview plot
    p2 = figure(tools='',height=250,width=250)
@@ -88,25 +99,28 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
    renderer.selection_glyph = selected_circle
    renderer.nonselection_glyph = nonselected_circle
    p2.outline_line_width = 0
-   p2.outline_line_alpha = 0.3
+   p2.background_fill_alpha = 0
+   p2.border_fill_alpha = 0
+   p2.outline_line_alpha = 0
    p2.outline_line_color = "white"
-   p2.xaxis.axis_line_width = 0
+   p2.xaxis.axis_line_alpha = 0
    p2.xaxis.axis_line_color = "white"
-   p2.yaxis.axis_line_width = 0
+   p2.yaxis.axis_line_alpha = 0
    p2.yaxis.axis_line_color = "white"
    rect = Rect(x='xs', y='ys', width='wd', height='ht', fill_alpha=0.1,
               line_color='black', fill_color='black')
    p2.add_glyph(source, rect)
-   
-   callback=CustomJS(code="""
+   code="""
        var inds = cb_obj.get('selected')['1d'].indices[0];
        var str = "" + inds;
        var pad = "0000";
        var indx = pad.substring(0, pad.length - str.length) + str;
        var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
-       var file= "javascript:Jmol.script(jmolApplet0," + "'load  plot-server/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
+       var file= "javascript:Jmol.script(jmolApplet0," + "'load  %s/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
-       """)
+       document.getElementById("p1").innerHTML = "Mouse selected frame:"+ indx ;
+       """ % appname
+   callback=CustomJS(code=code) 
 #   def slider_callback2(src=datasrc,source=s2, window=None):
 #    data = source.data
 #    xval=src.data['x']
@@ -119,25 +133,37 @@ def create_plot(data,xcol,ycol,ccol,plt_name):
    taptool = p1.select(type=TapTool)
    taptool.callback = callback
 #   taptool.js_on_change('value', callback=CustomJS.from_py_func(slider_callback2))  
+#   datasrc.callback = CustomJS(args=dict(src=datasrc), code="""
+#    src.send_data(cb_obj.get('selected')['1d'].indices);
+#    """)
+   #selected_info = Textarea(width=300)
 
-   slider_callback=CustomJS( code="""
+   def on_select(data):
+      selected_info.value = str(data)
+   #p1.callback=selected_info 
+ 
+   code1="""
        var inds = cb_obj.value;
        var str = "" + inds;
        var pad = "0000";
        var indx = pad.substring(0, pad.length - str.length) + str;
        var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 4.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
-       var file= "javascript:Jmol.script(jmolApplet1," + "'load  plot-server/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
+       var file= "javascript:Jmol.script(jmolApplet1," + "'load  %s/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
-       """)
+       document.getElementById("p2").innerHTML = "Slider selected frame:"+ indx ;
+       """ % appname
+   slider_callback=CustomJS( code=code1)
 
 
   # slider = Slider(start=0, end=2600, value=0, step=1, title="selected", callback=CustomJS.from_py_func(slider_callback2))
-   slider = Slider(start=0, end=n-1, value=0, step=1, title="Frame:", width=800)
+   slider = Slider(start=0, end=n-1, value=0, step=1, title="Frame No", width=700)
 #   slider.js_on_change('value', CustomJS.from_py_func(slider_callback2))
    slider.js_on_change('value', slider_callback)
 # draw selected point on slider change
 #   p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="firebrick", size=10,name="mycircle")
-   return p1,p2,slider
+   spacer = Spacer(width=250, height=250)
+   sp=column(p2,spacer)
+   return p1,sp,slider
 #   return column(row(p1,p2),row(slider,Spacer(width=20, height=30)))
 
 def cosmo_colors(cval):

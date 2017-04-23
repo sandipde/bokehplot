@@ -2,12 +2,12 @@ Jmol._isAsync = false;
 var jmolApplet0; // set up in HTML table, below
 jmol_isReady = function(applet) {
 document.title = (applet._id + " - Jmol " + Jmol.___JmolVersion)
-Jmol._getElement(applet, "appletdiv").style.border="0px solid blue"
+Jmol._getElement(applet, "appletdiv").style.border="10px solid blue"
 }
 
 var Info = {
-width: 250,
-height: 250,
+width: 500,
+height: 300,
 debug: false,
 color: "0xFFFFFF",
 use: "HTML5",   // JAVA HTML5 WEBGL are all options
@@ -19,11 +19,11 @@ script: "set antialiasDisplay;load plot-server/static/xyz/set.0000.xyz; connect 
 serverURL: "./jmol/php/jsmol.php",
 readyFunction: jmol_isReady,
 disableJ2SLoadMonitor: true,
-disableInitialConsole: true,
+disableInitialConsole: false,
 allowJavaScript: true
 }
 
 $(document).ready(function() {
 $("#appdiv").html(Jmol.getAppletHtml("jmolApplet0", Info))
-})
+});
 var lastPrompt=0;
