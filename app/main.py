@@ -5,7 +5,7 @@ import numpy as np
 from copy import copy
 from bokeh.io import curdoc
 from bokeh.layouts import layout,column,row
-from bokeh.models.layouts import Row
+from bokeh.models.layouts import Row,Column
 from bokeh.models import (
     ColumnDataSource, HoverTool, SingleIntervalTicker, Slider, Button, Label,
     CategoricalColorMapper,
@@ -20,8 +20,9 @@ from bokeh.models.widgets import Select,TextInput
 from cosmo import create_plot
 from os.path import dirname, join
 from smaplib import *
+from bokeh.models.widgets import DataTable,TableColumn
 def main(dfile,pcol,appname):
-    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,s2,xcol,ycol,ccol,plt_name,indx,controls
+    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,rcol,plt_name,indx,controls
 
 #initialise data
     datafile=join(dirname(__file__), 'data', dfile)
@@ -38,33 +39,46 @@ def main(dfile,pcol,appname):
     ycol.on_change('value', update)
     ccol = Select(title='Color', value=columns[pcol[2]], options=columns,width=50)
     ccol.on_change('value', update)
+    roptions=['None']
+    for option in columns: roptions.append(option)
+    rcol = Select(title='Size', value='None', options=roptions,width=50)
+    rcol.on_change('value', update)
     plt_name = Select(title='Palette',width=50, value='Inferno256', options=["Magma256","Plasma256","Spectral6","Inferno256","Viridis256","Greys256"])
     plt_name.on_change('value', update)
     xm=widgetbox(xcol,width=210,sizing_mode='fixed')
     ym=widgetbox(ycol,width=210,sizing_mode='fixed')
     cm=widgetbox(ccol,width=210,sizing_mode='fixed')
+    rm=widgetbox(rcol,width=210,sizing_mode='fixed')
     pm=widgetbox(plt_name,width=210,sizing_mode='fixed')
-    controls = Row(xm, ym, cm, pm, width=850, sizing_mode='scale_width')
+    controls = Row(xm, ym, cm,rm, pm, width=950, sizing_mode='scale_width')
+#    controls = Column(xm, ym, cm, pm, width=250, sizing_mode='scale_width')
 #    update(cv,scol,ycol,ccol,palette,radii)
-    plotpanel,slider=create_plot()
+#    plotpanel,slider=create_plot()
+    plotpanel,slider,data_table=create_plot()
+#    plotpanel=Row(Column(controls,p2),p1)
 
 # Play button
     button = Button(label='► Play', width=60)
     button.on_click(animate)
+    spacer = Spacer(width=150, height=30)
+
+
+
 
     lay=layout([
         [controls],
         [plotpanel],
         [Row(slider,button)],
+        [widgetbox(data_table)],
     ], sizing_mode='fixed')
     return lay
 
 
 
 def create_plot():
-    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,s2,xcol,ycol,ccol,plt_name,indx,controls
+    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,rcol,plt_name,indx,controls
 # Set up main plot
-    p1=cv.bkplot(xcol.value,ycol.value,ccol.value,palette=plt_name.value,radii='None',ps=10,minps=8,pw=600,ph=500,toolbar_location="above")
+    p1=cv.bkplot(xcol.value,ycol.value,ccol.value,radii=rcol.value,palette=plt_name.value,ps=10,minps=4,pw=700,ph=600,Hover=True,toolbar_location="above")
 
 # Set up mouse selection callbacks
 
@@ -111,7 +125,7 @@ def create_plot():
 
 # Set up Overview Plot
  
-    p2=cv.bkplot(xcol.value,ycol.value,color='None',radii='None',ps=4,minps=2,pw=200,ph=200)
+    p2=cv.bkplot(xcol.value,ycol.value,color='None',radii='None',ps=4,minps=2,pw=150,ph=150,Hover=False)
     p2.circle('xs', 'ys', source=selectsrc, fill_alpha=0.9, fill_color="blue",line_color='black',line_width=1, size=8,name="mycircle")
     source = ColumnDataSource({'xs': [], 'ys': [], 'wd': [], 'ht': []})
     jscode="""
@@ -131,15 +145,29 @@ def create_plot():
     p2.add_glyph(source, rect)
     
 
+# table 
+    colcode="""TableColumn(field="%s", title="%s") """ 
+    tcolumns=[]
+    for prop in cv.pd.columns:
+           if prop not in ["CV1","CV2","Cv1","Cv2","cv1","cv2","colors","radii"]: tcolumns.append(TableColumn(field=prop ,title=prop))
+#    tcolumns = [
+#        TableColumn(field="cv1", title="CV1"),
+#        TableColumn(field="cv2", title="CV2"),
+#    ]
+    datasrc=ColumnDataSource(cv.pd)
+#    data = dict(cv.pd[['cv1', 'cv2']])
+#    datasrc=ColumnDataSource(data)
+    data_table = DataTable(source=datasrc, scroll_to_selection=True,columns=tcolumns, width=400, height=280)
 
 
 # layout stuffs 
-    spacer = Spacer(width=200, height=300)
+    spacer = Spacer(width=150, height=200)
     indx=0
     xval=cv.pd[xcol.value][indx]
     yval=cv.pd[ycol.value][indx]
-    plotpanel=Row(p1, column(p2,spacer))
-    return plotpanel,slider
+#    p1.add_layout(p2, 'left')
+    plotpanel=Row(p1,Column(spacer,p2))
+    return plotpanel,slider,data_table
 
 
 def animate_update():
@@ -170,7 +198,9 @@ def animate():
 
 def update(attr, old, new):
     global cv,indx,selectsrc,xval,yval,plt_name,xcol,ycol,ccol
+#    plotpanel,slider=create_plot()
     plotpanel,slider=create_plot()
+
     lay.children[1] = plotpanel
 
 # Play button

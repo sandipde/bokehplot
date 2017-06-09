@@ -6,8 +6,8 @@ document.title = (applet._id + " - Jmol " + Jmol.___JmolVersion)
 }
 
 var Info = {
-   width: 500,
-   height: 500,
+   width: '100%',
+   height: '100%',
    debug: false,
    color: "0xFFFFFF",
    use: "HTML5",   // JAVA HTML5 WEBGL are all options

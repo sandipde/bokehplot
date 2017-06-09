@@ -119,30 +119,23 @@ localStorage.setItem("indexref",inds);
 
 
  <header class="w3-container w3-center  w3-blue-grey"><h1>Interactive Sketchmap Visualizer</h1> </header>
- <div  style="width:100%; position:absolute; left: 10px">
+ <div  style="width:95%; position:absolute; left: 20px">
   <div class="w3-row">
-    <div class="w3-container w3-col" style="width:60%">
+    <div class="w3-container w3-col" style="width:70%">
     <div id="step1" class="span6" style="height=100%" >
             {{ plot_div|indent(8) }}
             {{ plot_script|indent(8) }}
     </div>
     </div>
-    <div class="w3-col w3-center" style="width:500px" >
+    <div class="w3-col w3-center" style="width:30%" >
             <div class="w3-cell-col">
+              <br><br><br><br>
               <div class="w3-card-4 w3-center w3-cell-middle" id="viewer">
                 <div id="step2" class="span6" >
                   <h1 data-hint="Click on points on the map to see corresponding structure here." data-hintPosition="top-left" data-position="bottom-aligned"></h1>
                   <div id="p1" class="w3-tag" style="background-color:#b52a20" >Mouse selected frame: 0000</div>
-                  <div class="w3-center" style="width:500px ; height:500px"  id="appdiv">  </div>
+                  <div class="w3-center" style="width:100% ; height:400px"  id="appdiv">  </div>
                   <input type="button" value="PopUp Window" onclick='cloneJSmol(jmolApplet0);' />
-                  <script type="text/javascript">
-  Jmol.jmolRadioGroup(jmolApplet0,[
-      ['cartoons off; trace off; rockets off; select visible; spacefill 23%; wireframe 0.15;', 'Ball &amp; Stick'],
-      ['cartoons off; trace off; rockets off; select visible; spacefill 0%; wireframe 0.15;', 'Tube'],
-      ['cartoons off; trace off; rockets off; select visible; spacefill 0%; wireframe 0.05;', 'Wireframe'],
-      ['cartoons off; trace off; rockets off; select visible; spacefill 23%; wireframe 0.15;', 'Default', 'checked']
-         ], '&nbsp;&nbsp;', 'size2');
-</script>
                 </div>
         <!--        <div id="step3" class="span6" style="width:300px" >
                   <div class="w3-center" style="width:300px;" id="appdiv2" ></div>

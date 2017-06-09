@@ -74,39 +74,59 @@ class smap:
     	v=v/norm
     	return v-min(v)
 
-    def bkplot(self,x,y,color='None',radii='None',ps=20,minps=0,alpha=0.8,pw=600,ph=400,palette='Inferno256',title='',**kwargs):
+    def bkplot(self,x,y,color='None',radii='None',ps=20,minps=0,alpha=0.8,pw=600,ph=400,palette='Inferno256',style='smapstyle',Hover=True,title='',**kwargs):
         from bokeh.layouts import row, widgetbox,column
         from bokeh.models import HoverTool,TapTool,FixedTicker,Circle
         from bokeh.models import CustomJS, Slider,ColorBar,HoverTool,LinearColorMapper, BasicTicker
         from bokeh.plotting import figure
         from bokeh.palettes import Spectral6,Inferno256,Viridis256,Greys256,Magma256,Plasma256
         from bokeh.models import LogColorMapper, LogTicker, ColorBar,BasicTicker,LinearColorMapper
+        from bokeh.core.enums import Enumeration
         import pandas as pd
-        if (title==''): title=self.name
+#        if (title==''): title=self.name
         data=self.pd
         COLORS=locals()[palette]
-        proplist=[]
-        for prop in data.columns:
-            if prop not in ["CV1","CV2","Cv1","Cv2","cv1","cv2","colors","radii"]: proplist.append((prop,'@'+prop))
-        TOOLS="resize,crosshair,pan,wheel_zoom,reset,tap,save,"
-        hover = HoverTool(names=["mycircle"],
-                tooltips=[
-                    ("index", "$index"),
-                    ("(x,y)", "($x, $y)")
-                ]
-            )
-        for prop in proplist:
-             hover.tooltips.append(prop)
-        plot=figure(title=title,plot_width=pw,active_scroll="wheel_zoom", plot_height=ph,tools=[TOOLS,hover],**kwargs)
+        TOOLS="resize,crosshair,pan,wheel_zoom,reset,tap,save,box_select,box_zoom,lasso_select"
+        if Hover :
+             proplist=[]
+             for prop in data.columns:
+                 if prop not in ["CV1","CV2","Cv1","Cv2","cv1","cv2","colors","radii"]: proplist.append((prop,'@'+prop))
+             hover = HoverTool(names=["mycircle"],
+                     tooltips=[
+                         ("index", "$index"),
+                         ("(x,y)", "($x, $y)")
+                     ]
+                 )
+             for prop in proplist:
+                  hover.tooltips.append(prop)
+             plot=figure(title=title,plot_width=pw,active_scroll="wheel_zoom", plot_height=ph,tools=[TOOLS,hover],**kwargs)
+        else:
+             plot=figure(title=title,plot_width=pw,active_scroll="wheel_zoom", plot_height=ph,tools=[TOOLS],**kwargs)
+           
         initial_circle = Circle(x='x', y='y')
-        selected_circle = Circle(fill_alpha=1, fill_color="colors", size=ps)
+        selected_circle = Circle(fill_alpha=1, fill_color="colors", size=ps,line_color=None)
         nonselected_circle = Circle(fill_alpha=0.7,fill_color='colors',line_color=None)
+        if style == 'smapstyle':
+             plot.xgrid.grid_line_color = None
+             plot.ygrid.grid_line_color = None
+             plot.xaxis[0].ticker=FixedTicker(ticks=[])
+             plot.yaxis[0].ticker=FixedTicker(ticks=[])
+             plot.outline_line_width = 0
+             plot.outline_line_alpha = 0
+             plot.background_fill_alpha = 0
+             plot.border_fill_alpha = 0
+             plot.xaxis.axis_line_width = 0
+             plot.xaxis.axis_line_color = "white"
+             plot.yaxis.axis_line_width = 0
+             plot.yaxis.axis_line_color = "white"
+             plot.yaxis.axis_line_alpha = 0
+
         if radii == 'None':
             r=[ps for i in range(len(data))]
             data['radii']=r
         else:
             r=[val for val in data[radii]]
-            rn=normalize(r)
+            rn=self.normalize(r)
             rad=[minps+ps*np.sqrt(val) for val in rn ]
             data['radii']=rad
             
@@ -127,7 +147,7 @@ class smap:
             renderer.selection_glyph = selected_circle
             renderer.nonselection_glyph = nonselected_circle
             color_mapper=LinearColorMapper(palette, low=data[color].min(), high=data[color].max())
-            colorbar = ColorBar(color_mapper=color_mapper, ticker=BasicTicker(),label_standoff=12, border_line_color=None, location=(0,0))
+            colorbar = ColorBar(color_mapper=color_mapper, ticker=BasicTicker(),label_standoff=4, border_line_color=None, location=(0,0),orientation="vertical")
             plot.add_layout(colorbar, 'left')
             return plot
 
