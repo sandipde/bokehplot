@@ -21,7 +21,7 @@ from cosmo import create_plot
 from os.path import dirname, join
 from smaplib import *
 def main(dfile,pcol,appname):
-    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,s2,xcol,ycol,ccol,plt_name,indx
+    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,s2,xcol,ycol,ccol,plt_name,indx,controls
 
 #initialise data
     datafile=join(dirname(__file__), 'data', dfile)
@@ -46,13 +46,32 @@ def main(dfile,pcol,appname):
     pm=widgetbox(plt_name,width=210,sizing_mode='fixed')
     controls = Row(xm, ym, cm, pm, width=850, sizing_mode='scale_width')
 #    update(cv,scol,ycol,ccol,palette,radii)
+    plotpanel,slider=create_plot()
+
+# Play button
+    button = Button(label='► Play', width=60)
+    button.on_click(animate)
+
+    lay=layout([
+        [controls],
+        [plotpanel],
+        [Row(slider,button)],
+    ], sizing_mode='fixed')
+    return lay
+
+
+
+def create_plot():
+    global cv,selectsrc,columns,button,slider,n,xcol,ycol,ccol,s2,xcol,ycol,ccol,plt_name,indx,controls
 # Set up main plot
     p1=cv.bkplot(xcol.value,ycol.value,ccol.value,palette=plt_name.value,radii='None',ps=10,minps=8,pw=600,ph=500,toolbar_location="above")
 
 # Set up mouse selection callbacks
 
 
-# The following code is very tricky to understand properly. the %s are the function or variable to pass from python depending on the slider callback or mouse callback. One could write 3 seperate callbacks to connect slider,jmol and mouse selection but this way it is more compact ! 
+# The following code is very tricky to understand properly. 
+# the %s are the function or variable to pass from python depending on the slider callback or mouse callback. 
+# One could write 3 seperate callbacks to connect slider,jmol and mouse selection but this way it is more compact ! 
 
     code="""
        var refdata = ref.get('data');
@@ -68,7 +87,7 @@ def main(dfile,pcol,appname):
        var str = "" + inds;
        var pad = "0000";
        var indx = pad.substring(0, pad.length - str.length) + str;
-       var settings=  "connect 1.0 1.2 (carbon) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (nitrogen) (hydrogen) SINGLE CREATE ; connect 1.0 1.2 (carbon) (nitrogen) SINGLE CREATE ; connect 3.0 5 (phosphorus) (iodine) SINGLE CREATE ; set perspectiveDepth OFF "
+       var settings=  " " 
        var file= "javascript:Jmol.script(jmolApplet0," + "'load  %s/static/xyz/set."+ indx+ ".xyz ;" + settings + "')" ;
        location.href=file;
        localStorage.setItem("indexref",indx);
@@ -82,6 +101,7 @@ def main(dfile,pcol,appname):
     slider_callback=CustomJS(args=dict(source=selectsrc, ref=refsrc,slider=slider), code=code%("value","",appname))
     slider.js_on_change('value', slider_callback)
     slider.on_change('value', slider_update)
+
 #set up mouse
     callback=CustomJS(
          args=dict(source=selectsrc, ref=refsrc,s=slider), code=code%("get('selected')['1d'].indices[0]","s.set('value', inds)",appname))
@@ -112,27 +132,14 @@ def main(dfile,pcol,appname):
     
 
 
-# Play button
-    button = Button(label='► Play', width=60)
-    button.on_click(animate)
 
 # layout stuffs 
     spacer = Spacer(width=200, height=300)
     indx=0
     xval=cv.pd[xcol.value][indx]
     yval=cv.pd[ycol.value][indx]
-#    xval,yval=selected_point(colvar,col_dict[xcol.value],col_dict[ycol.value],indx)
-    s2 = ColumnDataSource(data=dict(xs=[xval], ys=[yval]))
-#    p1,p2,slider= create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value],plt_name.value,appname)
-#    p1.circle('xs', 'ys', source=s2, fill_alpha=0.9, fill_color="blue",line_color='black',line_width=1, size=15,name="mycircle")
-    #p1.circle('xs', 'ys', source=s2, fill_alpha=1, fill_color="black", size=10,name="mycircle")
-#    slider.on_change('value', slider_update)
-    lay = layout([
-        [controls],
-        [p1, column(p2,spacer)],
-        [slider,button],
-    ], sizing_mode='fixed')
-    return lay
+    plotpanel=Row(p1, column(p2,spacer))
+    return plotpanel,slider
 
 
 def animate_update():
@@ -162,22 +169,15 @@ def animate():
 
 
 def update(attr, old, new):
-    global cv,indx,s2,xval,yval,plt_name,xcol,ycol,ccol
-#    col_dict={"cv1":0,"cv2": 1,"index": 2,"energy": 3}
-#    col_dict=get_propnames(datafile)
-#    columns=col_dict.keys()
-    p1=cv.bkplot(xcol.value,ycol.value,ccol.value,palette=plt_name.value,radii='None',ps=10,minps=8,pw=800,ph=600)
-#    p1,p2,slider = create_plot(colvar,col_dict[xcol.value],col_dict[ycol.value],col_dict[ccol.value],plt_name.value,appname)
-#    xval,yval=selected_point(colvar,col_dict[xcol.value],col_dict[ycol.value],indx)
-    xval=cv.pd[xcol.value][indx]
-    yval=cv.pd[ycol.value][indx]
-    s = ColumnDataSource(data=dict(xs=[xval], ys=[yval]))
-    s2.data=s.data 
-    p1.circle('xs', 'ys', source=s2, fill_alpha=0.9, fill_color="blue",line_color='black',line_width=1, size=8,name="mycircle")
+    global cv,indx,selectsrc,xval,yval,plt_name,xcol,ycol,ccol
+    plotpanel,slider=create_plot()
+    lay.children[1] = plotpanel
+
+# Play button
     button = Button(label='► Play', width=60)
     button.on_click(animate)
-#    lay.children[1] = row(p1,p2)
-    lay.children[1] = p1
+
+    lay.children[2] = Row(slider,button)
 
 
 
