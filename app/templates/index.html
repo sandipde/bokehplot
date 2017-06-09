@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+ <!--   <title>Sketchmap</title> -->
+    {{ bokeh_css }}
+    {{ bokeh_js }}
+    {%- for file in js_files %}
+    <script type="text/javascript" src="{{ file }}"></script>
+    {%- endfor %}
+    {% block javascript %} 
+    {%- for dir in appname %}
+    <script type="text/javascript">
+        {% include "myjsmol.js" %}
+    </script>
+    {%- endfor %}
+    <script type="text/javascript">
+        {% include "intro.js" %}
+    </script>
+    {% endblock %}
+    </style>
+   {%- for file in css_files %}
+      <link rel="stylesheet" href="{{file}}">
+   {%- endfor %}
+  </style>
+  <style type="text/css">
+     .button {
+       border-radius: 30px;
+       background-color: #4286f4;
+       border: none;
+       color: #FFFFFF;
+       text-align: center;
+       font-size: 15px;
+       padding: 10px;
+       width: 120px;
+       transition: all 0.5s;
+       cursor: pointer;
+       margin: 5px;
+     }
+     
+     .button span {
+       cursor: pointer;
+       display: inline-block;
+       position: relative;
+       transition: 0.5s;
+     }
+     
+     .button span:after {
+       content: '\00bb';
+       position: absolute;
+       opacity: 0;
+       top: 0;
+       right: -20px;
+       transition: 0.5s;
+     }
+     
+     .button:hover span {
+       padding-right: 25px;
+     }
+     
+     .button:hover span:after {
+       opacity: 1;
+       right: 0;
+     }
+    .gwd-div-1tar {
+      position: absolute;
+      left: 0px;
+      width: 1067px;
+      height: 492px;
+      transform-origin: 533.5px 246px 0px;
+      top: 25px;
+    }
+    .gwd-img-djxg {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 1067px;
+    }
+    .gwd-div-controls {
+      position: absolute;
+      width: 1.865px;
+      height: 1.809px;
+      left: 460px;
+      top: 5px;
+    }
+    .gwd-div-p2 {
+      position: absolute;
+      width: 1.865px;
+      height: 1.809px;
+      left: 930px;
+      top: 70.5618px;
+    }
+    .gwd-div-w8b7 {
+      position: absolute;
+      width: 576.405px;
+      height: 62.9213px;
+      left: 20.2227px;
+      top: 471.91px;
+    }
+    .gwd-div-1swj {
+      position: absolute;
+      width: 147.191px;
+      height: 140.449px;
+      left: 492.133px;
+      top: 294.382px;
+    }
+  </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        {% include "start_intro.js" %}
+    </script>
+<script type="text/javascript">
+inds="0000" ;      // initialization of the local storage used in popup window 
+localStorage.setItem("indexref",inds);
+</script>
+
+
+
+ <header class="w3-container w3-center  w3-blue-grey"><h1>Interactive Sketchmap Visualizer</h1> </header>
+ <div  style="width:100%; position:absolute; left: 10px">
+  <div class="w3-row">
+    <div class="w3-container w3-col" style="width:60%">
+    <div id="step1" class="span6" style="height=100%" >
+            {{ plot_div|indent(8) }}
+            {{ plot_script|indent(8) }}
+    </div>
+    </div>
+    <div class="w3-col w3-center" style="width:500px" >
+            <div class="w3-cell-col">
+              <div class="w3-card-4 w3-center w3-cell-middle" id="viewer">
+                <div id="step2" class="span6" >
+                  <h1 data-hint="Click on points on the map to see corresponding structure here." data-hintPosition="top-left" data-position="bottom-aligned"></h1>
+                  <div id="p1" class="w3-tag" style="background-color:#b52a20" >Mouse selected frame: 0000</div>
+                  <div class="w3-center" style="width:500px ; height:500px"  id="appdiv">  </div>
+                  <input type="button" value="PopUp Window" onclick='cloneJSmol(jmolApplet0);' />
+                  <script type="text/javascript">
+  Jmol.jmolRadioGroup(jmolApplet0,[
+      ['cartoons off; trace off; rockets off; select visible; spacefill 23%; wireframe 0.15;', 'Ball &amp; Stick'],
+      ['cartoons off; trace off; rockets off; select visible; spacefill 0%; wireframe 0.15;', 'Tube'],
+      ['cartoons off; trace off; rockets off; select visible; spacefill 0%; wireframe 0.05;', 'Wireframe'],
+      ['cartoons off; trace off; rockets off; select visible; spacefill 23%; wireframe 0.15;', 'Default', 'checked']
+         ], '&nbsp;&nbsp;', 'size2');
+</script>
+                </div>
+        <!--        <div id="step3" class="span6" style="width:300px" >
+                  <div class="w3-center" style="width:300px;" id="appdiv2" ></div>
+                  <h1 data-hint="Play with the slider to see corresponding structure here." data-hintPosition="top-left" data-position="left"></h1>
+                  <div id="p2" class="w3-tag " style="background-color:#4286f4" >Slider selected frame: 0000 </div>
+                </div>
+               </div>
+         -->    
+              <div  style="position:relative; top:-350px ;left: -140px ;width: 200px" >
+                 <button class="button" href="javascript:void(0);" onclick="startIntro();"><span>Tour !</span></button> 
+              </div>
+            </div>
+    </div>
+  </div>
+  <div class="gwd-div-controls"> <h1 data-hint="Try coloring the map with different properties. Sketchmp is built purely with structural input parameters. Coloring with different property showcase the structure-property correlation" data-hintPosition="top-middle" data-position="bottom-right-aligned"></h1></div>
+  <div class="gwd-div-p2"> <h1 data-hint="An overview of the main plot. Try zooming in on the main map ! " data-hintPosition="top-right" data-position="bottom-right-aligned"></h1></div>
+<script type="text/javascript">
+$(document).ready(function() {
+javascript:introJs().addHints()
+}) </script>
+</div>
+</body>
+</html>
